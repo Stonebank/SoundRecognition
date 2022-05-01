@@ -46,6 +46,8 @@ public class SoundComparator {
                 System.exit(0);
         }
 
+        System.out.println("CONVERSION_TYPE=" + type);
+
         File[] audio_file = directory.listFiles();
         if (audio_file != null) {
 
