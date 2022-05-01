@@ -51,6 +51,7 @@ public class MP3Converter {
             }
 
             try {
+                System.out.println("Converting " + audio_file.getName());
                 converter.convert(audio_file.getPath(), Settings.WAV_DIRECTORY + audio_file.getName().replaceAll(".mp3", ".wav"));
                 conversions++;
             } catch (JavaLayerException e) {
@@ -102,6 +103,7 @@ public class MP3Converter {
                         sourceFormat.getSampleRate(), false
                 );
 
+                System.out.println("Converting " + audio_file.getName());
                 AudioInputStream wav = AudioSystem.getAudioInputStream(convertFormat, mp3stream);
                 AudioSystem.write(wav, AudioFileFormat.Type.WAVE, new File(Settings.WAV_DIRECTORY + audio_file.getName().replaceAll(".mp3",".wav")));
                 conversions++;
