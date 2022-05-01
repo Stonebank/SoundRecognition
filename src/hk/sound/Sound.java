@@ -18,6 +18,10 @@ public class Sound {
         return name;
     }
 
+    public double getScore() {
+        return score;
+    }
+
     public double getConfidence() {
         double confidence = 100 * score;
         if (confidence >= 100)
