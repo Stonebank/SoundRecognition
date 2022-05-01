@@ -126,7 +126,7 @@ public class SoundComparator {
 
     }
 
-    private static String formatTime(long seconds) {
+    private String formatTime(long seconds) {
         long minutes = seconds / 60;
         long hours = minutes / 60;
         long days = hours / 24;
