@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/WAVRecognition.iml" filepath="$PROJECT_DIR$/WAVRecognition.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SoundRecognition.iml" filepath="$PROJECT_DIR$/SoundRecognition.iml" />
     </modules>
   </component>
 </project>
