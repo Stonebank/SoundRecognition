@@ -23,10 +23,7 @@ public class Sound {
     }
 
     public double getConfidence() {
-        double confidence = 100 * score;
-        if (confidence >= 100)
-            confidence = 100;
-        return confidence;
+        return getScore() * 100 >= 100 ? 100 : getScore() * 100;
     }
 
     public int getBestFrame() {
