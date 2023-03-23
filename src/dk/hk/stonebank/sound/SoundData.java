@@ -14,9 +14,10 @@ public record SoundData(String name, int bestFrame, double bestTimePosition, dou
 
     @Override
     public String toString() {
-        return "BestMatch{" +
+        return "SoundData{" +
                 "name='" + name + '\'' +
-                ", best_frame=" + bestFrame +
+                ", bestFrame=" + bestFrame +
+                ", bestTimePosition=" + bestTimePosition +
                 ", score=" + score +
                 '}';
     }

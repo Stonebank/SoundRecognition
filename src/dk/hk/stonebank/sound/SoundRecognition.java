@@ -9,8 +9,12 @@ import dk.hk.stonebank.utility.ConsoleColor;
 import dk.hk.stonebank.utility.Utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Hassan on 23-03-2023
@@ -63,12 +67,25 @@ public class SoundRecognition {
 
     private void start() {
 
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        System.out.println(ConsoleColor.colorText("Available processors: " + availableProcessors, ConsoleColor.ANSI_CYAN));
+
         var stopwatch = Stopwatch.createStarted();
 
-        byte[] selectedSoundBytes = new FingerprintManager().extractFingerprint(new Wave(selectedSound));
+        var fingerprintManager = new FingerprintManager();
 
-        var sounds = new ArrayList<SoundData>();
+        System.out.println(ConsoleColor.colorText("Extracting fingerprint from " + selectedSound, ConsoleColor.ANSI_CYAN));
+        byte[] selectedSoundFingerprint = new FingerprintManager().extractFingerprint(new Wave(selectedSound));
+
+        var sounds = Collections.synchronizedList(new ArrayList<SoundData>());
         var wavDirectory = Utils.getFilesInDirectory(Settings.WAV_PATH);
+
+        var progress = new AtomicInteger();
+
+        var futures = new ArrayList<Future<?>>();
+        var service = Executors.newFixedThreadPool(availableProcessors);
+
+        System.out.println(ConsoleColor.colorText("Initiating sound recognition...", ConsoleColor.ANSI_CYAN));
 
         for (int i = 0; i < wavDirectory.length; i++) {
 
@@ -76,25 +93,39 @@ public class SoundRecognition {
             if (!wavDirectory[i].getName().endsWith(".wav"))
                 continue;
 
-            // If the file is the same as the selected file, we skip it
+            // if the file is the same as the selected sound, we skip it
             if (wavDirectory[i].getPath().equalsIgnoreCase(selectedSound))
                 continue;
 
-            byte[] soundBytes = new FingerprintManager().extractFingerprint(new Wave(wavDirectory[i].getPath()));
-            var similarity = new FingerprintSimilarityComputer(selectedSoundBytes, soundBytes).getFingerprintsSimilarity();
+            int tempIndex = i;
+            futures.add(service.submit(() -> {
 
-            sounds.add(new SoundData(wavDirectory[i].getName(),
-                    similarity.getMostSimilarFramePosition(), similarity.getsetMostSimilarTimePosition(), similarity.getScore()));
+                byte[] currentSoundBytes = fingerprintManager.extractFingerprint(new Wave(wavDirectory[tempIndex].getPath()));
 
-            Utils.printProgressBar(i, wavDirectory.length);
+                var similarity = new FingerprintSimilarityComputer(selectedSoundFingerprint, currentSoundBytes).getFingerprintsSimilarity();
+
+                sounds.add(new SoundData(wavDirectory[tempIndex].getName(),
+                        similarity.getMostSimilarFramePosition(), similarity.getsetMostSimilarTimePosition(), similarity.getScore()));
+                Utils.printProgressBar(progress.incrementAndGet(), wavDirectory.length);
+
+            }));
 
         }
 
+        futures.forEach(future -> {
+            try {
+                future.get();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        service.shutdown();
+
         sounds.sort(Comparator.comparing(SoundData::score).reversed());
 
-        System.out.println(ConsoleColor.colorText("\nOverall score: " + sounds.stream().mapToDouble(SoundData::score).average().orElse(0), ConsoleColor.ANSI_GREEN));
-        System.out.println(ConsoleColor.colorText("\nBest match: " + sounds.get(0), ConsoleColor.ANSI_GREEN));
-        System.out.println(ConsoleColor.colorText("\nApplication finished in " + stopwatch.stop().elapsed().toMillis() + " ms", ConsoleColor.ANSI_GREEN));
+        System.out.println(ConsoleColor.colorText(sounds.get(0).toString(), ConsoleColor.ANSI_GREEN));
+        System.out.println(ConsoleColor.colorText("Application finished in " + stopwatch.stop().elapsed().toMillis() + " ms", ConsoleColor.ANSI_GREEN));
 
     }
 
